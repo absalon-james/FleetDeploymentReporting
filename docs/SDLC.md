@@ -67,13 +67,80 @@ Not all sections in Table of Contents will be used, required or accurate.
 
 * #### 1.7 [Secure Coding Guidelines](#secure-coding-guidelines)
 
-    * Definition: Guidelines by which to develop and review code to ensure security
-    * Activities:
-        - Create and agreee upon guidelines for producing code
-        - Research common guidelines and agree upon a subset which will apply to specific project
-        - Document means of enforcing guidelines
-    * Deliverables:
-        - Documentation of guidelines
+    * Ansible deployment scripts:
+        - All cloud snitch ansible deployment scripts should make use of secure defaults.
+        - No default variable should contain sensitive configuration data. Actual device names, ip addresses, passwords, and usernames should be in external configuration and not part of the FDR repository.
+        - Avoid hardcoding configurables into configuration templates.
+        - Avoid leaving ansible debug tasks inside of deployment code.
+        - Avoid templating ansible commands that change based on user input.
+
+    * Injestion and API(Python):
+        - All python code should follow [pep8](https://www.python.org/dev/peps/pep-0008/).
+
+        - Entity Labels
+            * Label names should follow the CapWords convention. Example: Environment, Host, AptPackage
+            * Label names should only contain alphanumeric characters.
+            * When using a variable label: The label should be checked against a list of valid labels
+        - Entity Properties:
+            * Property names should be lowercase with underscores. Example: last_sync, lsb_description, memtotal_mb
+            * Property names should consist of alphanumeric alphanumeric characters and underscores.
+            * When using a variable property, the property should be checked against a list of valid properties for a label.
+
+        - Database queryies:
+            * All neo4j queries should use query parameters when building queries around user input.
+            * Avoid hard coding values when building neo4j queries.
+            * Writes should only happen during injestion.
+
+        - All data awaiting injestion should be encrypted.
+        - Data that has been decrypted should never be written to disk.
+
+        - API user input:
+            * All user input should be validated.
+            * All views that accept user data should immediately raise a ValidationError after invalid data is detected.
+            * All views that accept the name of a label or a property should use the registry module to determine validity of requested label and/or property.
+            * Do not disable csrf middleware
+
+        - User authentication and authorization
+            * All api views should require authentication and authorization.
+            * Never disable default authentication and permission classes.
+            * Adding additional authorization classes to views is permitted.
+
+        - Logging:
+            * Django DEBUG should always be False for production.
+            * The api should not log to disk. The api should log to stderr and the webserver should handle logging to disk.
+            * Do not log sesnsitive information.
+
+    * User Interface:
+        - Do not link to external javascript libraries.
+        - Do not use user input to generate server templates dynamically.
+        - Do not use user input to generate angular templates dynamically.
+        - Do not run user input through the following angularjs methods:
+            * $watch(userContent, ...)
+            * $watchGroup(userContent, ...)
+            * $watchCollection(userContent, ...)
+            * $eval(userContent)
+            * $evalAsync(userContent)
+            * $apply(userContent)
+            * $applyAsync(userContent)
+            * $compile(userContent)
+            * $parse(userContent)
+            * $interpolate(userContent)
+        - Always validate user data prior to making API requests. The same requests should be validated server side as well.
+
+    * Enforcement of guidelines:
+        - All code style/formatting tests must pass before a change can be merged.
+        - All unittests must pass before a change can be merged.
+        - All code changes require the the approval by someone other than the author of the code change.
+        - In addition to reviewing the effectiveness of the change, the reviewer should examine the change against the following checkist:
+            * Configuration defaults are secure.
+            * Sensitive information has not been introduced to the repository.
+            * Log statements do not risk leaking sensitive information.
+            * Database label names and property names are checked against a list of valid values.
+            * Database cipher queries use query parameters.
+            * Server side templates are not generated dynamically using user input.
+            * Client side templates are not generated dynamically using user input.
+            * New permission classes do not replace or invalidate existing default permission classes.
+            * Questionable changes should be discussed and reviewed against the above guidelines.
 
 #### 2 [Planning](#planning)
 
